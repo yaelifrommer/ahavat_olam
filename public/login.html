@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <!-- בס"ד -->
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>כניסה למערכת אהבת עולם</title>
+
+  <!-- favicon כדי למנוע 404 -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Ctext y='50%25' x='50%25' dominant-baseline='middle' text-anchor='middle' font-size='48'%3E🔒%3C/text%3E%3C/svg%3E"/>
+
+  <!-- ה-JS הקיים שלך -->
+  <script src="/public/js/auth.js" defer></script>
+
+  <style>
+    :root { --brand:#0ea5e9; --ink:#0f172a; --muted:#64748b; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, Arial, sans-serif; background:#f6fafc; color:var(--ink); }
+    .container { max-width: 760px; margin: 32px auto; padding: 0 16px; }
+    h1 { font-size: 32px; margin: 0 0 16px; font-weight: 800; text-align: right; }
+    .card { background:#fff; border-radius: 14px; padding:18px; margin: 14px 0; box-shadow: 0 4px 16px rgba(0,0,0,.06); }
+    label { display:block; margin-bottom:8px; font-weight:700; font-size: 18px; }
+    input { width:100%; padding:14px 12px; border:1px solid #d6d9df; border-radius: 12px; font-size:18px; background:#ecf5ff; }
+    input:focus { outline: 3px solid #cdefff; border-color:#98d9ff; background:#fff; }
+    .muted { color:var(--muted); font-size:14px; margin-top:8px; }
+    .big-btn { display:inline-flex; gap:8px; align-items:center; justify-content:center;
+      width:100%; margin-top:12px; padding:14px; font-size:18px; font-weight:700;
+      background:var(--brand); color:#fff; border:none; border-radius:12px; cursor:pointer; }
+    .big-btn[disabled] { opacity:.6; cursor:not-allowed; }
+    .ok { color:#166534; }
+    .warn { color:#b50000; }
+    .step-title { font-size:20px; font-weight:800; margin-bottom:8px; text-align:right; }
+    footer { margin-top: 2rem; text-align:center; font-size:0.95em; color:#666; }
+    .sr-live { min-height: 1.2em; }
+
+    /* שלב 2 מוסתר כברירת מחדל */
+    #step2 { display:none; }
+
+    /* חושף שלב 2 כשההודעה לא ריקה */
+    section.card:has(#sendMsg:not(:empty)) + #step2 { display:block; }
+
+    /* סגנון הודעות ענק */
+    #sendMsg {
+      font-size: 28px;
+      font-weight: 800;
+      text-align: center;
+      margin-top: 16px;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <main class="container" aria-labelledby="pageTitle">
+    <h6>בס"ד</h6>
+    <h1 id="pageTitle">כניסה למערכת</h1>
+
+    <!-- שלב 1 -->
+    <section class="card" aria-labelledby="step1Title">
+      <div class="step-title" id="step1Title">שלב 1: הכנס מייל וקבל קוד</div>
+
+      <label for="email">האימייל שלך</label>
+      <input id="email" type="email" placeholder="name@example.com" autocomplete="email" />
+
+      <button id="send" class="big-btn">שלח קוד</button>
+
+      <!-- לכאן auth.js כותב:
+           - "שולח..."
+           - ואז: "הקוד נשלח למייל שלך – העתק והדבק כאן" -->
+      <div id="sendMsg" class="sr-live" aria-live="polite"></div>
+
+      <div class="muted">אם לא מצאת את המייל – בדוק גם בתיבת הספאם.</div>
+    </section>
+
+    <!-- שלב 2 -->
+    <section class="card" id="step2" aria-labelledby="step2Title">
+
+      <label for="code">הדבק את הקוד שקיבלת במייל: </label>
+      <input id="code" type="text" inputmode="numeric" maxlength="6" placeholder="123456" />
+
+      <button id="verify" class="big-btn">הצג מועמדים</button>
+      <div id="verifyMsg" class="helper sr-live" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <footer>
+    פותח ע"י יעל | <a href="mailto:yaelintech@gmail.com">yaelintech@gmail.com</a>
+  </footer>
+</body>
+</html>
