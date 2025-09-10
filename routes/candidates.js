@@ -15,8 +15,8 @@ async function loadWithCache() {
     try { const rows = await cache.inflight; return { rows, stale: false }; } catch {}
   }
 
+  // ⬅️ טוען את sheets.js רק כשבאמת צריך (מפחית קולד-סטארט)
   cache.inflight = (async () => {
-    // ⬅️ טוען את sheets.js רק כשבאמת צריך
     const { getCandidatesSheet } = await import('../services/sheets.js');
     const rows = await getCandidatesSheet();
     cache.rows = rows;
@@ -36,15 +36,17 @@ async function loadWithCache() {
   }
 }
 
+// עמוד HTML מאובטח (לא נשמר בקאש הדפדפן)
 router.get('/candidates', authRequired, (req, res) => {
   res.set('Cache-Control', 'no-store');
   res.sendFile('views/candidates.html', { root: process.cwd() });
 });
 
+// JSON מאובטח
 router.get('/api/candidates', authRequired, async (req, res) => {
   try {
     const { rows, stale } = await loadWithCache();
-    res.set('Cache-Control', 'no-store');
+    res.set('Cache-Control', 'no-store'); // לא לשמור קאש דפדפן
     res.json({ ok: true, stale, count: rows.length, data: rows });
   } catch (err) {
     res.status(500).json({ ok: false, error: 'failed_to_load_candidates' });

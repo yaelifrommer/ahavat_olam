@@ -1,9 +1,7 @@
-// routes/auth.js
 import express from 'express';
 import { z } from 'zod';
 import rateLimit from 'express-rate-limit';
 import { issueOtp, verifyOtp, destroySession, getSessionEmail } from '../services/otpStore.js';
-import { sendLoginCode } from '../services/mailer.js';
 
 const router = express.Router();
 
@@ -19,17 +17,20 @@ const requestCodeLimiter = rateLimit({
   max: 8,
   message: { ok: false, error: 'יותר מדי בקשות. נסי שוב בעוד רגע.' }
 });
-
 const verifyCodeLimiter = rateLimit({
   windowMs: 2 * 60 * 1000,
   max: 12,
   message: { ok: false, error: 'יותר מדי ניסיונות אימות. נסי שוב בעוד רגע.' }
 });
 
+// בריאות מינימלית לגלות בקלות 504
+router.get('/healthz', (req, res) => res.json({ ok: true, ts: Date.now() }));
+
 router.post('/request-code', requestCodeLimiter, async (req, res, next) => {
   try {
     const { email } = emailSchema.parse(req.body);
 
+    // ✅ טוענים את sheets רק אם חייבים (לא בקולד-סטארט)
     const allowAll = String(process.env.ALLOW_ALL_EMAILS || 'false').toLowerCase() === 'true';
     if (!allowAll) {
       const { isEmailAllowed } = await import('../services/sheets.js');
@@ -38,9 +39,19 @@ router.post('/request-code', requestCodeLimiter, async (req, res, next) => {
     }
 
     const { code, expiresAt } = await issueOtp(email);
-    await sendLoginCode(email, code, expiresAt);
 
-    res.json({ ok: true, message: 'קוד נשלח במייל (אם האימייל מורשה).' });
+    // ✅ לא מחכים למייל – שולחים ברקע עם timeouts קצרים
+    (async () => {
+      try {
+        const { sendLoginCode } = await import('../services/mailer.js');
+        await sendLoginCode(email, code, expiresAt);
+      } catch (e) {
+        console.error('mailer error:', e?.message || e);
+      }
+    })();
+
+    // עונים מיד
+    res.json({ ok: true, message: 'קוד נשלח (אם האימייל מורשה).' });
   } catch (err) {
     if (err instanceof z.ZodError) return res.status(400).json({ ok: false, error: 'ולידציה נכשלה' });
     next(err);
@@ -73,7 +84,7 @@ router.post('/verify-code', verifyCodeLimiter, async (req, res, next) => {
 
 router.post('/logout', async (req, res) => {
   const token = req.signedCookies?.session_token || req.cookies?.session_token;
-  if (token) await destroySession(token); // Stateless: no-op, אבל משאיר תאימות
+  if (token) await destroySession(token);
   res.clearCookie('session_token', { path: '/' });
   res.json({ ok: true });
 });
