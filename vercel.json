@@ -1,0 +1,11 @@
+{
+    "functions": {
+      "api/index.js": { "maxDuration": 10 }
+    },
+    "routes": [
+      { "src": "^/public/(.*)$", "dest": "/public/$1" },
+      { "src": "^/login.html$", "dest": "/public/login.html" },
+      { "src": "^(?!/api/).*", "dest": "/api/index.js" }
+    ]
+  }
+  

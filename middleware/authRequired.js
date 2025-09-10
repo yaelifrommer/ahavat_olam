@@ -7,7 +7,6 @@ export function authRequired(req, res, next) {
 
   if (!email) {
     const url = req.originalUrl || req.url || '';
-    // כל בקשה שמתחילה ב-/api/ תקבל 401 JSON, לא HTML
     if (url.startsWith('/api/')) {
       return res.status(401).json({ ok: false, error: 'לא מחובר' });
     }

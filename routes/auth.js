@@ -1,3 +1,4 @@
+// routes/auth.js
 import express from 'express';
 import { z } from 'zod';
 import rateLimit from 'express-rate-limit';
@@ -12,7 +13,7 @@ const verifySchema = z.object({
   code: z.string().regex(/^\d{6}$/)
 });
 
-// הגבלות קצב נקודתיות (מומלץ)
+// הגבלות קצב נקודתיות
 const requestCodeLimiter = rateLimit({
   windowMs: 2 * 60 * 1000,
   max: 8,
@@ -52,11 +53,10 @@ router.post('/verify-code', verifyCodeLimiter, async (req, res, next) => {
     const { sessionToken } = await verifyOtp(email, code);
 
     const crossSite = String(process.env.CROSS_SITE || 'false').toLowerCase() === 'true';
-    // routes/auth.js (verify-code)
     res.cookie('session_token', sessionToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // או crossSite ? 'none' : 'lax' למטה
-      sameSite: (String(process.env.CROSS_SITE || 'false').toLowerCase() === 'true') ? 'none' : 'lax',
+      secure: crossSite || (process.env.NODE_ENV === 'production'),
+      sameSite: crossSite ? 'none' : 'lax',
       signed: true,
       path: '/',
       maxAge: 12 * 60 * 60 * 1000
@@ -64,7 +64,7 @@ router.post('/verify-code', verifyCodeLimiter, async (req, res, next) => {
 
     res.json({ ok: true });
   } catch (err) {
-    if (err.code === 'LOCKED') return res.status(429).json({ ok: false, error: 'ננעל זמנית עקב ניסיונות כושלים' });
+    if (err.code === 'LOCKED')  return res.status(429).json({ ok: false, error: 'ננעל זמנית עקב ניסיונות כושלים' });
     if (err.code === 'INVALID') return res.status(401).json({ ok: false, error: 'קוד שגוי או שפג תוקפו' });
     if (err instanceof z.ZodError) return res.status(400).json({ ok: false, error: 'ולידציה נכשלה' });
     next(err);
@@ -73,7 +73,7 @@ router.post('/verify-code', verifyCodeLimiter, async (req, res, next) => {
 
 router.post('/logout', async (req, res) => {
   const token = req.signedCookies?.session_token || req.cookies?.session_token;
-  if (token) await destroySession(token);
+  if (token) await destroySession(token); // Stateless: no-op, אבל משאיר תאימות
   res.clearCookie('session_token', { path: '/' });
   res.json({ ok: true });
 });

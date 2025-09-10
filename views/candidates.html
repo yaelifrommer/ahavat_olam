@@ -314,17 +314,8 @@ body{background:var(--sky-50);font-family:Arial,system-ui,Segoe UI,Helvetica Neu
     </section>
   </main>
 
-  <script>
-    document.addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-select-all],[data-clear-all]');
-      if (!btn) return;
-      const key = btn.getAttribute('data-select-all') || btn.getAttribute('data-clear-all');
-      const check = !!btn.getAttribute('data-select-all');
-      document.querySelectorAll(`input[type="checkbox"][data-multi="${key}"]`).forEach(cb => cb.checked = check);
-    });
-  </script>
-
-  <script type="module" src="/public/js/filters.js"></script>
-  <script type="module" src="/public/js/candidates.js"></script>
+  <script src="/public/js/candidates-page.js" defer></script>
+  <script type="module" src="/public/js/filters.js" defer></script>
+  <script type="module" src="/public/js/candidates.js" defer></script>
 </body>
 </html>

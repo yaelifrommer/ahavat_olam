@@ -1,11 +1,17 @@
-// public/js/candidates.js
+// /public/js/candidates.js
 async function loadCandidates() {
   try {
     const res = await fetch('/api/candidates', {
       method: 'GET',
-      headers: { 'Accept': 'application/json' },
-      credentials: 'include' // חשוב: שולח את ה-cookie של ההתחברות
+      headers: { 'Accept': 'application/json' }, // מבטיח JSON, לא HTML
+      credentials: 'include'                     // שולח את ה-cookie של הסשן
     });
+
+    // אם לא מחוברים – נווטי חזרה לעמוד הכניסה
+    if (res.status === 401) {
+      window.location.assign('/login.html');
+      return;
+    }
 
     if (!res.ok) {
       const text = await res.text();
@@ -13,7 +19,7 @@ async function loadCandidates() {
       throw new Error(`HTTP ${res.status}`);
     }
 
-    const json = await res.json(); // כאן בטוח JSON
+    const json = await res.json();
     const rows = Array.isArray(json?.data) ? json.data : [];
 
     // שליחה ל-filters.js שמאזין ל-candidates:data
@@ -25,5 +31,4 @@ async function loadCandidates() {
   }
 }
 
-// טוענים עם עליית הדף
 document.addEventListener('DOMContentLoaded', loadCandidates);

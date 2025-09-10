@@ -25,15 +25,16 @@ const {
   NODE_ENV = 'development',
 } = process.env;
 
+// ✅ CSP ללא inline scripts (נוציא את האינליין מה-HTML לקובץ חיצוני)
 app.use(helmet({
   contentSecurityPolicy: {
     useDefaults: true,
     directives: {
       "default-src": ["'self'"],
-      "script-src": ["'self'"],
+      "script-src": ["'self'"],                 // אין inline
       "style-src": ["'self'", "'unsafe-inline'"],
       "img-src": ["'self'", "data:"],
-      "connect-src": ["'self'"],
+      "connect-src": ["'self'", "https:"],      // אם הפרונט מדבר החוצה
     }
   },
   crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" }
@@ -89,7 +90,12 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({ ok: false, error: err.message || 'שגיאה לא צפויה' });
 });
 
+// ✅ בענן (Vercel) לא מאזינים לפורט — רק מקומית
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ Server listening on http://localhost:${PORT}`);
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`✅ Server listening on http://localhost:${PORT}`);
+  });
+}
+
+export default app;
