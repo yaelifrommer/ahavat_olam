@@ -25,7 +25,7 @@ const {
   NODE_ENV = 'development',
 } = process.env;
 
-// ✅ CSP ללא inline scripts (נוציא את האינליין מה-HTML לקובץ חיצוני)
+// ✅ CSP ללא inline scripts (דאגנו להוציא אינליינס ל־/public/js)
 app.use(helmet({
   contentSecurityPolicy: {
     useDefaults: true,
@@ -58,7 +58,13 @@ const globalLimiter = rateLimit({
 });
 app.use(globalLimiter);
 
-// ===== נתיבים ציבוריים בלבד =====
+// ===== בריאות — לפני שאר הראוטים כדי לאבחן 504 =====
+app.get('/api/healthz', (req, res) => {
+  res.json({ ok: true, ts: Date.now(), env: process.env.VERCEL ? 'vercel' : 'local' });
+});
+app.get('/api/ping', (req, res) => res.send('pong'));
+
+// ===== סטטי ציבורי =====
 app.use('/public', express.static(path.join(__dirname, 'public'), { maxAge: '7d', immutable: true }));
 
 app.get('/login.html', (req, res) => {

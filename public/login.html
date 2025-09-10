@@ -9,7 +9,7 @@
   <!-- favicon כדי למנוע 404 -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Ctext y='50%25' x='50%25' dominant-baseline='middle' text-anchor='middle' font-size='48'%3E🔒%3C/text%3E%3C/svg%3E"/>
 
-  <!-- ה-JS הקיים שלך -->
+  <!-- ה-JS -->
   <script src="/public/js/auth.js" defer></script>
 
   <style>
@@ -63,17 +63,12 @@
 
       <button id="send" class="big-btn">שלח קוד</button>
 
-      <!-- לכאן auth.js כותב:
-           - "שולח..."
-           - ואז: "הקוד נשלח למייל שלך – העתק והדבק כאן" -->
       <div id="sendMsg" class="sr-live" aria-live="polite"></div>
-
       <div class="muted">אם לא מצאת את המייל – בדוק גם בתיבת הספאם.</div>
     </section>
 
     <!-- שלב 2 -->
     <section class="card" id="step2" aria-labelledby="step2Title">
-
       <label for="code">הדבק את הקוד שקיבלת במייל: </label>
       <input id="code" type="text" inputmode="numeric" maxlength="6" placeholder="123456" />
 
