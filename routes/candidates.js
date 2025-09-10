@@ -1,16 +1,10 @@
 import express from 'express';
-import { getCandidatesSheet } from '../services/sheets.js';
 import { authRequired } from '../middleware/authRequired.js';
 
 const router = express.Router();
 const CACHE_TTL_SECONDS = Number(process.env.CACHE_TTL_SECONDS || 600);
 
-// קאש + נעילת טעינה
-let cache = {
-  rows: null,
-  ts: 0,
-  inflight: null,
-};
+let cache = { rows: null, ts: 0, inflight: null };
 
 async function loadWithCache() {
   const now = Date.now();
@@ -18,15 +12,12 @@ async function loadWithCache() {
   if (fresh) return { rows: cache.rows, stale: false };
 
   if (cache.inflight) {
-    try {
-      const rows = await cache.inflight;
-      return { rows, stale: false };
-    } catch {
-      // ניפול הלאה
-    }
+    try { const rows = await cache.inflight; return { rows, stale: false }; } catch {}
   }
 
   cache.inflight = (async () => {
+    // ⬅️ טוען את sheets.js רק כשבאמת צריך
+    const { getCandidatesSheet } = await import('../services/sheets.js');
     const rows = await getCandidatesSheet();
     cache.rows = rows;
     cache.ts = Date.now();
@@ -45,22 +36,16 @@ async function loadWithCache() {
   }
 }
 
-// עמוד HTML מאובטח (לא נשמר בקאש הדפדפן)
 router.get('/candidates', authRequired, (req, res) => {
   res.set('Cache-Control', 'no-store');
   res.sendFile('views/candidates.html', { root: process.cwd() });
 });
 
-// JSON מאובטח
 router.get('/api/candidates', authRequired, async (req, res) => {
   try {
     const { rows, stale } = await loadWithCache();
-    res.json({
-      ok: true,
-      stale,
-      count: rows.length,
-      data: rows,
-    });
+    res.set('Cache-Control', 'no-store');
+    res.json({ ok: true, stale, count: rows.length, data: rows });
   } catch (err) {
     res.status(500).json({ ok: false, error: 'failed_to_load_candidates' });
   }
