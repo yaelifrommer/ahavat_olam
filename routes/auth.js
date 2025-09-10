@@ -52,13 +52,14 @@ router.post('/verify-code', verifyCodeLimiter, async (req, res, next) => {
     const { sessionToken } = await verifyOtp(email, code);
 
     const crossSite = String(process.env.CROSS_SITE || 'false').toLowerCase() === 'true';
+    // routes/auth.js (verify-code)
     res.cookie('session_token', sessionToken, {
       httpOnly: true,
-      secure: crossSite || (process.env.NODE_ENV === 'production'),
-      sameSite: crossSite ? 'none' : 'lax',
-      maxAge: 12 * 60 * 60 * 1000,
+      secure: process.env.NODE_ENV === 'production', // או crossSite ? 'none' : 'lax' למטה
+      sameSite: (String(process.env.CROSS_SITE || 'false').toLowerCase() === 'true') ? 'none' : 'lax',
+      signed: true,
       path: '/',
-      signed: true // 👈 cookie חתום
+      maxAge: 12 * 60 * 60 * 1000
     });
 
     res.json({ ok: true });
